@@ -25,3 +25,23 @@ body {
     text-wrap: balance;
   }
 }
+@keyframes walk {
+  0% {
+    transform: translateX(-100%); /* Start from off the left */
+  }
+  50% {
+    transform: translateX(0); /* Move to the center */
+  }
+  100% {
+    transform: translateX(100%); /* End off the right */
+  }
+}
+
+.icon-walk {
+  animation: walk 5s linear infinite; /* Adjust duration as needed */
+}
+@media (max-width: 640px) {
+  .icon-walk {
+    animation: none; /* Disable walking animation */
+  }
+}
