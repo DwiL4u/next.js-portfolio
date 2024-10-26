@@ -100,13 +100,13 @@ const ProjectSection = () => {
           isSelected={tag === "Mobile"}
         />
       </div>
-      <ul className="grid md:grid-cols-3 gap-8 md:gap-12 ">
+      <ul className="grid md:grid-cols-3 gap-8 md:gap-12 " ref={ref}>
         {filteredProjects.map((project, index) => (
           <motion.li
             key={index}
             variants={cardVariants}
             initial="initial"
-            animate="animate"
+            animate={isInView ? "animate" : "initial"}
             transition={{ duration: 0.3, delay: index * 0.4 }}
           >
             <ProjectCard
