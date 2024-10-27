@@ -18,7 +18,8 @@ module.exports = {
       ...colors,
       primary: colors.purple,
       secondary: colors.pink,
+    }
   },
   plugins: [],
   }
-};
+

@@ -1,69 +1,91 @@
 "use client";
-import GithunIcon from "../../../public/github-icon.svg";
+import GithubIcon from "../../../public/github-icon.svg";
 import LinkedInIcon from "../../../public/linkedin-icon.svg";
 import Link from "next/link";
 import Image from "next/image";
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
+import Swal from "sweetalert2";
 
 const EmailSection = () => {
-  const formRef = useRef(null);
   const [formStatus, setFormStatus] = useState({
     submitting: false,
     success: false,
     error: false,
   });
-  const [errorMessage, setErrorMessage] = useState("");
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMessage("");
-    const email = e.target.email.value;
-    const subject = e.target.subject.value;
+ async function handleSubmit(e) {
+   e.preventDefault();
+   setFormStatus({ ...formStatus, submitting: true });
 
-    if (!email.includes("@")) {
-      setErrorMessage("Please enter a valid email address.");
-      return;
-    }
+   // Fetch request to send to Web3Forms
+   const web3Response = await fetch("https://api.web3forms.com/submit", {
+     method: "POST",
+     headers: {
+       "Content-Type": "application/json",
+       Accept: "application/json",
+     },
+     body: JSON.stringify({
+       access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
+       name: e.target.name.value,
+       email: e.target.email.value,
+       subject: e.target.subject.value,
+       message: e.target.message.value,
+     }),
+   });
 
-    if (subject.length < 5) {
-      setErrorMessage("Subject must be at least 5 characters long.");
-      return;
-    }
-    console.log("Form data being submitted:", { email, subject, message });
-    setFormStatus({ submitting: true, success: false, error: false });
-    const formData = {
-      name: e.target.name.value,
-      email: e.target.email.value,
-      subject: e.target.subject.value,
-      message: e.target.message.value,
-    };
+   const web3Result = await web3Response.json();
 
-    try {
-      const response = await fetch("/api/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error response:", errorData);
-        setErrorMessage(errorData.message);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      // Handle success
-      setFormStatus({ submitting: false, success: true, error: false });
-       if (formRef.current) {
-         formRef.current.reset();
-        }
-    } catch (error) {
-      console.error("Error submitting the form:", error);
-      setErrorMessage("An error occurred while submitting the form.");
-      setFormStatus({ submitting: false, success: false, error: true });
-    }
-  };
+   if (!web3Result.success) {
+     const errorMessage =
+       web3Result.message || "Failed to send the message to Web3Forms.";
+     Swal.fire({
+       title: "Error!",
+       text: errorMessage,
+       icon: "error",
+       confirmButtonText: "Try Again",
+     });
+     setFormStatus({ submitting: false, success: false, error: true });
+     return; // Exit if Web3Forms submission fails
+   }
+
+   // Fetch request to send the email using Resend
+   const emailResponse = await fetch("/api/send", {
+     // Update URL here
+     method: "POST",
+     headers: {
+       "Content-Type": "application/json",
+       Accept: "application/json",
+     },
+     body: JSON.stringify({
+       name: e.target.name.value,
+       email: e.target.email.value,
+       subject: e.target.subject.value,
+       message: e.target.message.value,
+     }),
+   });
+
+   const emailResult = await emailResponse.json();
+
+   if (emailResult.success) {
+     Swal.fire({
+       title: "Success!",
+       text: "Message sent successfully!",
+       icon: "success",
+       confirmButtonText: "Cool",
+     });
+     e.target.reset();
+     setFormStatus({ submitting: false, success: true, error: false });
+   } else {
+     const errorMessage = emailResult.message || "Failed to send the email.";
+     Swal.fire({
+       title: "Error!",
+       text: errorMessage,
+       icon: "error",
+       confirmButtonText: "Try Again",
+     });
+     setFormStatus({ submitting: false, success: false, error: true });
+   }
+ }
+
 
   return (
     <section className="grid md:grid-cols-2 my-12 md:my-12 py-24 gap-4 relative">
@@ -78,7 +100,7 @@ const EmailSection = () => {
         </p>
         <div className="socials flex flex-row gap-2">
           <Link href="https://github.com/DwiL4u">
-            <Image src={GithunIcon} alt="Github Icon" />
+            <Image src={GithubIcon} alt="Github Icon" />
           </Link>
           <Link href="https://www.linkedin.com/in/dwi-lenggani-118885275/">
             <Image src={LinkedInIcon} alt="Linkedin Icon" />
@@ -86,7 +108,7 @@ const EmailSection = () => {
         </div>
       </div>
       <div>
-        <form className="flex flex-col" onSubmit={handleSubmit} ref={formRef}>
+        <form className="flex flex-col" onSubmit={handleSubmit}>
           <div className="mb-6">
             <label
               htmlFor="email"
