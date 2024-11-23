@@ -59,6 +59,7 @@ const ReplyEmailTemplate = ({ senderName, yourName, message }) => {
                     borderRadius: "4px",
                   }}
                 >
+                  {message}
                 </p>
                 <p>I will get back to you as soon as possible.</p>
                 <p>Best regards,</p>

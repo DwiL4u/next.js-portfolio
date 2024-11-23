@@ -12,6 +12,7 @@ const AboutSection = () => {
           alt="about image"
           width={500}
           height={500}
+          unoptimized
         />
         <div className="mt-4 md:mt-0 text-left flex flex-col h-full">
           <h2 className="text-4xl font-bold text-slate-50 mb-4">About Me</h2>

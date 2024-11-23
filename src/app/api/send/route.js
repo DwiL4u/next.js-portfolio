@@ -6,7 +6,27 @@ import { NextResponse } from "next/server";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req) {
- 
+  const res = NextResponse.next();
+
+  // Set CORS headers
+  res.headers.set("Access-Control-Allow-Origin", "https://dwilenggani.net");
+  res.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+
+  // Handle preflight OPTIONS request
+  if (req.method === "OPTIONS") {
+    return res; // Respond to preflight requests
+  }
+  if (!process.env.RESEND_API_KEY) {
+    return NextResponse.json(
+      { success: false, message: "Missing API key." },
+      { status: 500 }
+    );
+  }
+
   const {
     name: senderName,
     email: senderEmail,
@@ -38,27 +58,21 @@ export async function POST(req) {
         message={message}
       />
     );
-    
 
     // Send the email using Resend
-    const response = await resend.emails.send({
+    await resend.emails.send({
       from: "Dwi Lenggani <contact@dwilenggani.com>",
       to: [senderEmail],
       subject: `Re: ${subject || "Your Message from Portfolio"}`,
       html: emailHTML,
     });
 
-   
-
-    return new Response(JSON.stringify({ success: true }), { status: 200 });
+    // Set the response headers and body for success
+    return NextResponse.json({ success: true }); // Correctly return the response
   } catch (error) {
     console.error("Failed to send email:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        message: "Failed to send email",
-        error: error.message,
-      }),
+    return NextResponse.json(
+      { success: false, message: "Failed to send the email." },
       { status: 500 }
     );
   }
